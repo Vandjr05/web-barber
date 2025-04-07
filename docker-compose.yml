@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  build-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vite-app-image
+    command: echo "Build complete"
+
+  nginx-norte:
+    image: nginx:alpine
+    volumes:
+      - ./dist:/usr/share/nginx/html
+      - ./nginx-norte.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - build-app
+
+  nginx-sul:
+    image: nginx:alpine
+    volumes:
+      - ./dist:/usr/share/nginx/html
+      - ./nginx-sul.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - build-app
+
+  loadbalancer:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-loadbalancer.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - nginx-norte
+      - nginx-sul
+
+volumes:
+  dist:
